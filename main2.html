@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TurfBook - Turf Booking System</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Arial', sans-serif;
+      background:
+        linear-gradient(135deg, rgba(66,75,136,0.3) 0%, rgba(76,175,80,0.45) 100%),
+        url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1350&q=80') center center/cover no-repeat;
+      min-height: 100vh;
+      color: #333;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      position: relative;
+    }
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      font-size: 3em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .header p { font-size: 1.2em; opacity: 0.9; }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+      gap: 10px;
+      position: relative;
+    }
+    .tab-button {
+      padding: 12px 24px;
+      background: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .tab-button.active {
+      background: #4CAF50;
+      color: white;
+      transform: translateY(-2px);
+    }
+    .tab-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    .turf-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .turf-card {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 20px;
+      border: 2px solid #e9ecef;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+    }
+    .turf-card:hover {
+      border-color: #4CAF50;
+      transform: translateY(-3px);
+      box-shadow: 0 5px 20px rgba(76, 175, 80, 0.2);
+    }
+    .turf-card.selected {
+      border-color: #4CAF50;
+      background: #f1f8e9;
+    }
+    .turf-name {
+      font-size: 1.4em;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+    .turf-details { color: #666; margin-bottom: 15px; }
+    .turf-price { font-size: 1.2em; font-weight: bold; color: #4CAF50; }
+    .time-slots {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .time-slot {
+      padding: 12px;
+      background: #e8f5e8;
+      border: 2px solid #4CAF50;
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: bold;
+    }
+    .time-slot:hover {
+      background: #4CAF50;
+      color: white;
+      transform: scale(1.05);
+    }
+    .time-slot.selected {
+      background: #4CAF50;
+      color: white;
+    }
+    .time-slot.booked {
+      background: #ffcdd2;
+      border-color: #f44336;
+      color: #d32f2f;
+      cursor: not-allowed;
+    }
+    .time-slot.booked:hover {
+      transform: none;
+      background: #ffcdd2;
+      color: #d32f2f;
+    }
+    .booking-form {
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 12px;
+      margin-top: 20px;
+    }
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #4CAF50;
+    }
+    .btn {
+      padding: 15px 30px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+    .btn:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    }
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border-left: 5px solid #4CAF50;
+    }
+    .booking-summary {
+      background: #e3f2fd;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border-left: 5px solid #2196F3;
+    }
+    .bookings-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .bookings-table th,
+    .bookings-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    .bookings-table th {
+      background: #4CAF50;
+      color: white;
+      font-weight: bold;
+    }
+    .bookings-table tr:hover {
+      background: #f5f5f5;
+    }
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .status-confirmed {
+      background: #d4edda;
+      color: #155724;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .stat-card {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      border-left: 5px solid #4CAF50;
+    }
+    .stat-number {
+      font-size: 2em;
+      font-weight: bold;
+      color: #4CAF50;
+    }
+    .stat-label {
+      color: #666;
+      margin-top: 5px;
+    }
+    @media (max-width: 768px) {
+      .header h1 { font-size: 2em; }
+      .tabs { flex-direction: column; align-items: center; }
+      .turf-grid { grid-template-columns: 1fr; }
+      .time-slots { grid-template-columns: repeat(2, 1fr); }
+    }
+    .profile-btn, #adminLoginBtn, #adminRegisterBtn {
+      position: absolute;
+      top: 30px;
+      background: #fff;
+      border: none;
+      border-radius: 25px;
+      padding: 10px 22px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: all 0.3s;
+      user-select: none;
+      font-size: 16px;
+      z-index: 10;
+    }
+    .profile-btn { right: 40px; color: #4CAF50; }
+    .profile-btn:hover { background: #4CAF50; color: #fff; }
+    #adminLoginBtn { right: 180px; background: #2196F3; color: #fff; }
+    #adminLoginBtn:hover { background: #1769aa; color: #eee; }
+    #adminRegisterBtn { right: 340px; background: #fff; color: #2196F3; }
+    #adminRegisterBtn:hover { background: #1769aa; color: #eee; }
+    .user-profile-modal,
+    .login-modal {
+      position: fixed;
+      z-index: 1000;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.15);
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+    .user-profile-content,
+    .login-box {
+      background: #fff;
+      border-radius: 14px;
+      padding: 32px 25px 18px 25px;
+      max-width: 350px;
+      width: 96vw;
+      box-shadow: 0 10px 30px rgba(76,175,80,0.12);
+      position: relative;
+    }
+    .close-profile {
+      position: absolute;
+      top: 10px;
+      right: 18px;
+      cursor: pointer;
+      font-size: 1.5em;
+      color: #888;
+    }
+    .profile-avatar {
+      background: #e3f2fd;
+      color: #4CAF50;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 9px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      font-weight: bold;
+    }
+    .favorite-icon {
+      float: right;
+      font-size: 1.2em;
+      color: #4CAF50;
+      cursor: pointer;
+      user-select: none;
+    }
+    .favorite-icon.active { color: #fdd835; }
+    #adminLogoutBtn {
+      float: right;
+      padding: 6px 14px;
+      background: #f44336;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 12px;
+      user-select: none;
+    }
+    #addTurfBtn {
+      width: 150px;
+      margin-bottom: 18px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button id="adminRegisterBtn">Admin Register</button>
+    <button class="profile-btn" id="profileBtn" style="display:none;">👤 Profile</button>
+    <button id="adminLoginBtn">Admin Login</button>
+
+    <!-- User Profile Modal -->
+    <div class="user-profile-modal" id="userProfileModal" tabindex="-1">
+      <div class="user-profile-content" role="dialog" aria-modal="true" aria-labelledby="profileName">
+        <span class="close-profile" role="button" tabindex="0" aria-label="Close Profile" onclick="closeProfileModal()">&times;</span>
+        <div class="profile-avatar" id="profileAvatar">U</div>
+        <div id="profileName" style="font-weight:bold; text-align:center;"></div>
+        <div id="profileEmail" style="color:#555; text-align:center;"></div>
+        <div style="margin-top:15px; margin-bottom:8px;"><strong>Favorites</strong></div>
+        <ul id="favoritesList"></ul>
+        <div style="margin-top:10px;"><strong style="font-size:1em;">My Bookings</strong></div>
+        <div id="profileBookings" style="font-size:0.98em; max-height:90px; overflow:auto;"></div>
+        <a href="#" onclick="logoutUser()" style="color:#f44336; display:block; margin-top:10px;">Log Out</a>
+      </div>
+    </div>
+
+    <!-- User Login Modal -->
+    <div class="login-modal" id="loginModal" tabindex="-1">
+      <div class="login-box" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+        <div id="loginTitle" style="font-weight:bold; font-size:1.2em; margin-bottom:14px; color:#4CAF50;">Sign In</div>
+        <form id="loginForm">
+          <label for="loginName">Name</label>
+          <input type="text" id="loginName" required autocomplete="off" />
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" required />
+          <button class="btn" type="submit">Sign In</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Admin Register Modal -->
+    <div class="login-modal" id="adminRegisterModal" tabindex="-1">
+      <div class="login-box" role="dialog" aria-modal="true" aria-labelledby="adminRegisterTitle">
+        <div id="adminRegisterTitle" style="font-weight:bold; font-size:1.2em; margin-bottom:14px; color:#4CAF50;">Admin Registration</div>
+        <form id="adminRegisterForm">
+          <label for="adminRegName">Full Name</label>
+          <input type="text" id="adminRegName" required autocomplete="off" />
+          <label for="adminRegEmail">Email</label>
+          <input type="email" id="adminRegEmail" required autocomplete="off" />
+          <label for="adminRegPassword">Password</label>
+          <input type="password" id="adminRegPassword" required autocomplete="off" />
+          <button class="btn" type="submit">Register</button>
+          <button type="button" class="btn" style="background:#f44336;margin-top:12px;" onclick="closeAdminRegisterModal()">Cancel</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div class="login-modal" id="adminLoginModal" tabindex="-1">
+      <div class="login-box" role="dialog" aria-modal="true" aria-labelledby="adminLoginTitle">
+        <div id="adminLoginTitle" style="font-weight:bold; font-size:1.2em; margin-bottom:14px; color:#4CAF50;">Admin Sign In</div>
+        <form id="adminLoginForm">
+          <label for="adminEmail">Admin Email</label>
+          <input type="email" id="adminEmail" required autocomplete="off" />
+          <label for="adminPassword">Password</label>
+          <input type="password" id="adminPassword" required autocomplete="off" />
+          <button class="btn" type="submit">Sign In</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="header">
+      <h1>🏟️ TurfBook</h1>
+      <p>Professional Turf Booking & Management System</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-button active" onclick="showTab('booking')" id="bookingTabBtn">Book Turf</button>
+      <button class="tab-button" id="adminTabBtn" style="display:none;" onclick="showTab('admin')">Admin Panel</button>
+    </div>
+
+    <!-- Booking Tab -->
+    <div id="booking" class="tab-content active">
+      <h2>🎯 Select Your Turf</h2>
+      <div class="turf-grid" id="turfGrid"></div>
+      <div id="timeSlotSection" style="display: none;">
+        <h3>⏰ Available Time Slots</h3>
+        <div class="time-slots" id="timeSlots"></div>
+      </div>
+      <div id="bookingFormSection" style="display: none;">
+        <div class="booking-form">
+          <h3>📝 Booking Details</h3>
+          <div class="booking-summary" id="bookingSummary"></div>
+          <form id="bookingForm">
+            <div class="form-group">
+              <label for="customerName">Full Name *</label>
+              <input type="text" id="customerName" required />
+            </div>
+            <div class="form-group">
+              <label for="customerPhone">Phone Number *</label>
+              <input type="tel" id="customerPhone" required />
+            </div>
+            <div class="form-group">
+              <label for="customerEmail">Email Address *</label>
+              <input type="email" id="customerEmail" required />
+            </div>
+            <div class="form-group">
+              <label for="teamName">Team Name (Optional)</label>
+              <input type="text" id="teamName" />
+            </div>
+            <div class="form-group">
+              <label for="specialRequests">Special Requests</label>
+              <textarea id="specialRequests" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn">🎉 Confirm Booking</button>
+          </form>
+        </div>
+      </div>
+      <div id="successMessage" style="display: none;">
+        <div class="success-message">
+          <h3>🎉 Booking Confirmed!</h3>
+          <p>Your turf has been successfully booked. You will receive a confirmation email shortly.</p>
+          <div id="bookingDetails"></div>
+          <br />
+          <button class="btn" onclick="resetBooking()">Book Another Turf</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Tab -->
+    <div id="admin" class="tab-content" style="display:none;">
+      <h2>
+        📊 Admin Dashboard
+        <button id="adminLogoutBtn" style="display:none;" onclick="adminLogout()">Logout Admin</button>
+      </h2>
+      <!-- Add Turf button -->
+      <button id="addTurfBtn" class="btn" style="margin-bottom:18px; display:none;">➕ Add Turf</button>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number" id="totalBookings">0</div>
+          <div class="stat-label">Total Bookings</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="todayBookings">0</div>
+          <div class="stat-label">Today's Bookings</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="totalRevenue">₹0</div>
+          <div class="stat-label">Total Revenue</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="occupancyRate">0%</div>
+          <div class="stat-label">Occupancy Rate</div>
+        </div>
+      </div>
+      <h3>📋 Recent Bookings for Your Turfs</h3>
+      <table class="bookings-table">
+        <thead>
+          <tr>
+            <th>Booking ID</th>
+            <th>Customer</th>
+            <th>Turf</th>
+            <th>Date &amp; Time</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="bookingsTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Add Turf Modal -->
+    <div id="addTurfModal" class="login-modal" tabindex="-1">
+      <div class="login-box" role="dialog" aria-modal="true" aria-labelledby="addTurfTitle" style="max-width:420px;">
+        <div id="addTurfTitle" style="font-weight:bold; font-size:1.2em; margin-bottom:14px; color:#4CAF50;">Add New Turf</div>
+        <form id="addTurfForm">
+          <label for="turfNameInput">Name</label>
+          <input type="text" id="turfNameInput" required />
+          <label for="turfTypeInput">Type</label>
+          <input type="text" id="turfTypeInput" required />
+          <label for="turfLocationInput">Location</label>
+          <input type="text" id="turfLocationInput" required />
+          <label for="turfFeaturesInput">Features</label>
+          <input type="text" id="turfFeaturesInput" />
+          <label for="turfPriceInput">Price (₹/hour)</label>
+          <input type="number" id="turfPriceInput" required min="0" />
+          <button class="btn" type="submit">Add Turf</button>
+          <button type="button" class="btn" style="background:#f44336;margin-top:12px;" onclick="closeAddTurfModal()">Cancel</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Empty default turfs array - no pre-added turfs
+    const defaultTurfs = [];
+
+    const timeSlots = [
+      "06:00 - 07:00", "07:00 - 08:00", "08:00 - 09:00", "09:00 - 10:00",
+      "10:00 - 11:00", "11:00 - 12:00", "12:00 - 13:00", "13:00 - 14:00",
+      "14:00 - 15:00", "15:00 - 16:00", "16:00 - 17:00", "17:00 - 18:00",
+      "18:00 - 19:00", "19:00 - 20:00", "20:00 - 21:00", "21:00 - 22:00"
+    ];
+
+    // USER & ADMIN DATA
+    let user = JSON.parse(localStorage.getItem('turfUser')) || null;
+    let userFavorites = JSON.parse(localStorage.getItem('turfFavorites')) || [];
+    let userBookings = JSON.parse(localStorage.getItem('turfUserBookings')) || [];
+
+    let turfAdmins = JSON.parse(localStorage.getItem('turfAdmins')) || [];
+    let adminSession = JSON.parse(localStorage.getItem('adminSession')) || null;
+    let isAdminLoggedIn = !!adminSession;
+
+    let turfs = JSON.parse(localStorage.getItem('turfList')) || defaultTurfs.slice();
+    let bookings = JSON.parse(localStorage.getItem('turfBookings')) || [];
+
+    let selectedTurf = null;
+    let selectedTimeSlot = null;
+
+    // DOM elements
+    const profileBtn = document.getElementById('profileBtn');
+    const loginModal = document.getElementById('loginModal');
+    const adminLoginModal = document.getElementById('adminLoginModal');
+    const adminRegisterModal = document.getElementById('adminRegisterModal');
+    const adminLoginBtn = document.getElementById('adminLoginBtn');
+    const adminRegisterBtn = document.getElementById('adminRegisterBtn');
+    const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+    const addTurfBtn = document.getElementById('addTurfBtn');
+    const addTurfModal = document.getElementById('addTurfModal');
+
+    // USER PROFILE & LOGIN
+    function showLoginModal() { loginModal.style.display = 'flex'; }
+    function closeLoginModal() { loginModal.style.display = 'none'; document.getElementById('loginForm').reset(); }
+    function openProfileModal() {
+      if (!user) { showLoginModal(); return; }
+      document.getElementById('userProfileModal').style.display = 'flex';
+      updateProfileUI();
+    }
+    function closeProfileModal() { document.getElementById('userProfileModal').style.display = 'none'; }
+    function updateProfileUI() {
+      if (!user) return;
+      document.getElementById('profileName').textContent = user.name;
+      document.getElementById('profileEmail').textContent = user.email;
+      document.getElementById('profileAvatar').textContent = user.name.charAt(0).toUpperCase();
+      const favList = document.getElementById('favoritesList');
+      if (userFavorites.length === 0) {
+        favList.innerHTML = "<li style='color:#bbb'>No favorites</li>";
+      } else {
+        favList.innerHTML = "";
+        userFavorites.forEach(tid => {
+          const turf = turfs.find(t => t.id === tid);
+          if (turf) favList.innerHTML += `<li>⭐ ${turf.name}</li>`;
+        });
+      }
+      const hist = userBookings.filter(b => b.userEmail === user.email).slice(-5).reverse();
+      const histDiv = document.getElementById('profileBookings');
+      if (hist.length === 0) {
+        histDiv.innerHTML = "<span style='color:#bbb'>No bookings yet</span>";
+      } else {
+        histDiv.innerHTML = "";
+        hist.forEach(b => {
+          histDiv.innerHTML += `<div>TB${b.id} - <b>${b.turfName}</b><br><span style="font-size:0.97em">${b.date}, ${b.timeSlot}</span></div>`;
+        });
+      }
+    }
+    function saveUserState() {
+      localStorage.setItem('turfUser', JSON.stringify(user));
+      localStorage.setItem('turfFavorites', JSON.stringify(userFavorites));
+      localStorage.setItem('turfUserBookings', JSON.stringify(userBookings));
+    }
+    function logoutUser() {
+      user = null;
+      profileBtn.style.display = 'none';
+      closeProfileModal();
+      saveUserState();
+    }
+    // User login form
+    document.getElementById('loginForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const username = document.getElementById('loginName').value.trim();
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      if (!username || !email) return;
+      user = { name: username, email: email };
+      profileBtn.style.display = 'inline-block';
+      closeLoginModal();
+      saveUserState();
+      loadTurfs();
+    });
+    profileBtn.onclick = openProfileModal;
+    loginModal.onclick = e => { if (e.target === loginModal) closeLoginModal(); };
+    document.getElementById('userProfileModal').onclick = e => { if (e.target === document.getElementById('userProfileModal')) closeProfileModal(); };
+
+    // Toggle favorite turf for logged-in user
+    window.toggleFavorite = function(event, turfId) {
+      event.stopPropagation();
+      if (!user) {
+        alert("Please sign in to add favorites!");
+        showLoginModal();
+        return;
+      }
+      const idx = userFavorites.indexOf(turfId);
+      if (idx > -1) userFavorites.splice(idx, 1);
+      else userFavorites.push(turfId);
+      saveUserState();
+      loadTurfs();
+      updateProfileUI();
+    };
+
+    // ADMIN REGISTRATION & LOGIN
+    adminRegisterBtn.onclick = () => { adminRegisterModal.style.display = 'flex'; };
+    function closeAdminRegisterModal() {
+      adminRegisterModal.style.display = 'none';
+      document.getElementById('adminRegisterForm').reset();
+    }
+    adminRegisterModal.onclick = e => { if (e.target === adminRegisterModal) closeAdminRegisterModal(); };
+    document.getElementById('adminRegisterForm').onsubmit = function(e) {
+      e.preventDefault();
+      const name = document.getElementById('adminRegName').value.trim();
+      const email = document.getElementById('adminRegEmail').value.trim().toLowerCase();
+      const password = document.getElementById('adminRegPassword').value;
+      if (!name || !email || !password) return alert("Complete all fields!");
+      if (turfAdmins.some(adm => adm.email === email)) {
+        alert("Admin with this email already exists.");
+        return;
+      }
+      turfAdmins.push({ name, email, password });
+      localStorage.setItem('turfAdmins', JSON.stringify(turfAdmins));
+      alert("Registration successful! Please login.");
+      closeAdminRegisterModal();
+    };
+
+    adminLoginBtn.onclick = () => { adminLoginModal.style.display = 'flex'; };
+    adminLoginModal.onclick = e => { if (e.target === adminLoginModal) adminLoginModal.style.display = 'none'; };
+    document.getElementById('adminLoginForm').onsubmit = e => {
+      e.preventDefault();
+      const email = document.getElementById('adminEmail').value.trim().toLowerCase();
+      const password = document.getElementById('adminPassword').value.trim();
+      const found = turfAdmins.find(adm => adm.email === email && adm.password === password);
+      if (found) {
+        isAdminLoggedIn = true;
+        adminSession = { name: found.name, email: found.email };
+        localStorage.setItem('adminSession', JSON.stringify(adminSession));
+        adminLoginModal.style.display = 'none';
+        alert("Admin login successful!");
+        showTab('admin');
+        onAdminLoginUpdateUI();
+      } else {
+        alert("Invalid admin credentials.");
+      }
+    };
+
+    adminLogoutBtn.onclick = adminLogout;
+    function adminLogout() {
+      isAdminLoggedIn = false;
+      adminSession = null;
+      localStorage.removeItem('adminSession');
+      alert("Admin logged out.");
+      onAdminLogoutUpdateUI();
+      showTab('booking');
+    }
+
+    function onAdminLoginUpdateUI() {
+      document.getElementById('adminTabBtn').style.display = 'inline-block';
+      document.getElementById('admin').style.display = 'block';
+      adminLoginBtn.style.display = 'none';
+      adminRegisterBtn.style.display = 'none';
+      profileBtn.style.display = 'none';
+      adminLogoutBtn.style.display = 'inline-block';
+      updateAdminPanelExtras();
+    }
+    function onAdminLogoutUpdateUI() {
+      adminLoginBtn.style.display = 'inline-block';
+      adminRegisterBtn.style.display = 'inline-block';
+      adminLogoutBtn.style.display = 'none';
+      document.getElementById('adminTabBtn').style.display = 'none';
+      document.getElementById('admin').style.display = 'none';
+      profileBtn.style.display = user ? 'inline-block' : 'none';
+      updateAdminPanelExtras();
+    }
+    function updateAdminPanelExtras() {
+      addTurfBtn.style.display = isAdminLoggedIn ? 'block' : 'none';
+    }
+
+    addTurfBtn.onclick = () => { addTurfModal.style.display = 'flex'; };
+    function closeAddTurfModal() {
+      addTurfModal.style.display = 'none';
+      addTurfForm.reset();
+    }
+    addTurfModal.onclick = e => { if (e.target === addTurfModal) closeAddTurfModal(); };
+    const addTurfForm = document.getElementById('addTurfForm');
+    addTurfForm.onsubmit = function(e) {
+      e.preventDefault();
+      const name = document.getElementById('turfNameInput').value.trim();
+      const type = document.getElementById('turfTypeInput').value.trim();
+      const location = document.getElementById('turfLocationInput').value.trim();
+      const features = document.getElementById('turfFeaturesInput').value.trim();
+      const price = parseInt(document.getElementById('turfPriceInput').value);
+      if (!name || !type || !location || isNaN(price)) return alert("Please complete all required fields.");
+      if (!isAdminLoggedIn || !adminSession) {
+        alert("You must be logged in as admin to add a turf.");
+        return;
+      }
+      const newTurf = {
+        id: Date.now(),
+        name, type, location, features, price,
+        owner: adminSession.email
+      };
+      turfs.push(newTurf);
+      localStorage.setItem('turfList', JSON.stringify(turfs));
+      loadTurfs();
+      closeAddTurfModal();
+      alert("New turf added successfully!");
+    };
+
+    // TURF BOOKING LOGIC
+
+    function loadTurfs() {
+      const savedTurfs = JSON.parse(localStorage.getItem('turfList'));
+      if (Array.isArray(savedTurfs)) turfs = savedTurfs;
+
+      const turfGrid = document.getElementById('turfGrid');
+      turfGrid.innerHTML = '';
+      turfs.forEach(turf => {
+        const turfCard = document.createElement('div');
+        turfCard.className = 'turf-card';
+        turfCard.onclick = (event) => {
+          if (event.target.classList.contains('favorite-icon')) return;
+          selectTurf(turf, turfCard);
+        };
+        const isFav = userFavorites.includes(turf.id);
+        const ownerBadge = turf.owner && adminSession && turf.owner === adminSession.email
+          ? `<div style="position:absolute;top:10px;right:10px;background:#4CAF50;color:#fff;padding:3px 8px;border-radius:12px;font-size:0.8em;font-weight:bold;">Your Turf</div>`
+          : '';
+        turfCard.innerHTML = `
+          <div class="turf-name">
+            ${turf.name}
+            <span class="favorite-icon ${isFav ? 'active' : ''}" title="Favorite"
+              onclick="toggleFavorite(event,${turf.id})">&#9733;</span>
+          </div>
+          <div class="turf-details">
+            <strong>Type:</strong> ${turf.type}<br>
+            <strong>Location:</strong> ${turf.location}<br>
+            <strong>Features:</strong> ${turf.features}
+          </div>
+          <div class="turf-price">₹${turf.price}/hour</div>
+          ${ownerBadge}
+        `;
+        turfGrid.appendChild(turfCard);
+      });
+    }
+
+    function selectTurf(turf, turfCard) {
+      selectedTurf = turf;
+      document.querySelectorAll('.turf-card').forEach(card => card.classList.remove('selected'));
+      turfCard.classList.add('selected');
+      document.getElementById('timeSlotSection').style.display = 'block';
+      loadTimeSlots();
+      document.getElementById('bookingFormSection').style.display = 'none';
+      selectedTimeSlot = null;
+    }
+
+    function loadTimeSlots() {
+      const timeSlotsContainer = document.getElementById('timeSlots');
+      timeSlotsContainer.innerHTML = '';
+      const today = new Date().toDateString();
+      timeSlots.forEach(slot => {
+        const tsEl = document.createElement('div');
+        tsEl.className = 'time-slot';
+        tsEl.textContent = slot;
+        const booked = bookings.some(b =>
+          b.turfId === selectedTurf.id &&
+          b.timeSlot === slot &&
+          b.date === today
+        );
+        if (booked) {
+          tsEl.classList.add('booked');
+          tsEl.textContent += ' (Booked)';
+        } else {
+          tsEl.onclick = () => selectTimeSlot(slot, tsEl);
+        }
+        timeSlotsContainer.appendChild(tsEl);
+      });
+    }
+
+    function selectTimeSlot(slot, element) {
+      selectedTimeSlot = slot;
+      document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('selected'));
+      element.classList.add('selected');
+      document.getElementById('bookingFormSection').style.display = 'block';
+      updateBookingSummary();
+    }
+
+    function updateBookingSummary() {
+      const summary = document.getElementById('bookingSummary');
+      const today = new Date().toLocaleDateString();
+      summary.innerHTML = `
+        <h4>📋 Booking Summary</h4>
+        <p><strong>Turf:</strong> ${selectedTurf.name}</p>
+        <p><strong>Date:</strong> ${today}</p>
+        <p><strong>Time:</strong> ${selectedTimeSlot}</p>
+        <p><strong>Price:</strong> ₹${selectedTurf.price}</p>
+      `;
+    }
+
+    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!selectedTurf || !selectedTimeSlot) {
+        alert("Please select turf and time slot.");
+        return;
+      }
+      const booking = {
+        id: Date.now(),
+        turfId: selectedTurf.id,
+        turfName: selectedTurf.name,
+        date: new Date().toDateString(),
+        timeSlot: selectedTimeSlot,
+        customerName: document.getElementById('customerName').value,
+        customerPhone: document.getElementById('customerPhone').value,
+        customerEmail: document.getElementById('customerEmail').value,
+        teamName: document.getElementById('teamName').value,
+        specialRequests: document.getElementById('specialRequests').value,
+        amount: selectedTurf.price,
+        status: 'Confirmed',
+        timestamp: new Date().toLocaleString()
+      };
+
+      bookings.push(booking);
+      localStorage.setItem('turfBookings', JSON.stringify(bookings));
+
+      // Add user email to booking history if logged-in user matches
+      if (user && booking.customerEmail.toLowerCase() === user.email.toLowerCase()) {
+        booking.userEmail = user.email;
+        userBookings.push(booking);
+        localStorage.setItem('turfUserBookings', JSON.stringify(userBookings));
+      }
+
+      showSuccessMessage(booking);
+    });
+
+    function showSuccessMessage(booking) {
+      document.getElementById('bookingFormSection').style.display = 'none';
+      document.getElementById('successMessage').style.display = 'block';
+      document.getElementById('bookingDetails').innerHTML = `
+        <p><strong>Booking ID:</strong> TB${booking.id}</p>
+        <p><strong>Turf:</strong> ${booking.turfName}</p>
+        <p><strong>Date & Time:</strong> ${booking.date} ${booking.timeSlot}</p>
+        <p><strong>Amount:</strong> ₹${booking.amount}</p>
+      `;
+      updateAdminStats();
+      loadBookingsTable();
+      updateProfileUI();
+    }
+
+    function resetBooking() {
+      selectedTurf = null;
+      selectedTimeSlot = null;
+      document.getElementById('timeSlotSection').style.display = 'none';
+      document.getElementById('bookingFormSection').style.display = 'none';
+      document.getElementById('successMessage').style.display = 'none';
+      document.querySelectorAll('.turf-card').forEach(card => card.classList.remove('selected'));
+      document.getElementById('bookingForm').reset();
+    }
+
+    function showTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+        tab.style.display = 'none';
+      });
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+
+      if (tabName === 'booking') {
+        document.getElementById('booking').classList.add('active');
+        document.getElementById('booking').style.display = 'block';
+        document.getElementById('bookingTabBtn').classList.add('active');
+      } else if (tabName === 'admin') {
+        if (!isAdminLoggedIn) {
+          alert('You must log in as admin to access the Admin Panel.');
+          showTab('booking');
+          return;
+        }
+        document.getElementById('admin').classList.add('active');
+        document.getElementById('admin').style.display = 'block';
+        document.getElementById('adminTabBtn').classList.add('active');
+        updateAdminStats();
+        loadBookingsTable();
+      }
+      resetBooking();
+    }
+
+    function updateAdminStats() {
+      if (!adminSession) {
+        document.getElementById('totalBookings').textContent = '0';
+        document.getElementById('todayBookings').textContent = '0';
+        document.getElementById('totalRevenue').textContent = '₹0';
+        document.getElementById('occupancyRate').textContent = '0%';
+        return;
+      }
+      const today = new Date().toDateString();
+      const ownedTurfs = turfs.filter(t => t.owner === adminSession.email).map(t => t.id);
+      const ownedBookings = bookings.filter(b => ownedTurfs.includes(b.turfId));
+      const todayOwnedBookings = ownedBookings.filter(b => b.date === today);
+      const totalRevenue = ownedBookings.reduce((sum, b) => sum + b.amount, 0);
+      const totalSlots = ownedTurfs.length * timeSlots.length;
+      const bookedSlots = todayOwnedBookings.length;
+      const occupancyRate = totalSlots > 0 ? Math.round((bookedSlots / totalSlots) * 100) : 0;
+      document.getElementById('totalBookings').textContent = ownedBookings.length;
+      document.getElementById('todayBookings').textContent = todayOwnedBookings.length;
+      document.getElementById('totalRevenue').textContent = `₹${totalRevenue.toLocaleString()}`;
+      document.getElementById('occupancyRate').textContent = `${occupancyRate}%`;
+    }
+
+    function loadBookingsTable() {
+      const tbody = document.getElementById('bookingsTableBody');
+      tbody.innerHTML = '';
+      if (!adminSession) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#666;">No admin logged in</td></tr>';
+        return;
+      }
+      const ownedTurfs = turfs.filter(t => t.owner === adminSession.email).map(t => t.id);
+      const ownedBookings = bookings.filter(b => ownedTurfs.includes(b.turfId));
+      const recentBookings = ownedBookings.slice(-10).reverse();
+      recentBookings.forEach(booking => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>TB${booking.id}</td>
+          <td><strong>${booking.customerName}</strong><br><small>${booking.customerPhone}</small></td>
+          <td>${booking.turfName}</td>
+          <td>${booking.date}<br><small>${booking.timeSlot}</small></td>
+          <td>₹${booking.amount}</td>
+          <td><span class="status-badge status-confirmed">${booking.status}</span></td>
+        `;
+        tbody.appendChild(row);
+      });
+      if (recentBookings.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#666;">No bookings found for your turfs</td></tr>';
+      }
+    }
+
+    function init() {
+      // load turfs or initialize
+      let savedTurfs = JSON.parse(localStorage.getItem('turfList'));
+      if (Array.isArray(savedTurfs)) turfs = savedTurfs;
+      else {
+        turfs = [];
+        localStorage.setItem('turfList', JSON.stringify(turfs));
+      }
+
+      let savedBookings = JSON.parse(localStorage.getItem('turfBookings'));
+      if (Array.isArray(savedBookings)) bookings = savedBookings;
+      else bookings = [];
+
+      user = JSON.parse(localStorage.getItem('turfUser')) || null;
+      userFavorites = JSON.parse(localStorage.getItem('turfFavorites')) || [];
+      userBookings = JSON.parse(localStorage.getItem('turfUserBookings')) || [];
+
+      turfAdmins = JSON.parse(localStorage.getItem('turfAdmins')) || [];
+      adminSession = JSON.parse(localStorage.getItem('adminSession')) || null;
+      isAdminLoggedIn = !!adminSession;
+
+      profileBtn.style.display = user ? 'inline-block' : 'none';
+
+      if (isAdminLoggedIn) onAdminLoginUpdateUI();
+      else onAdminLogoutUpdateUI();
+
+      loadTurfs();
+      updateAdminStats();
+      loadBookingsTable();
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
